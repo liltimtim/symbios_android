@@ -1,6 +1,7 @@
 package com.mobilefirst.symbios
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.DialogInterface
@@ -73,8 +74,9 @@ class MainActivity : AppCompatActivity() {
         grabPhoneContact()
     }
 
+    @SuppressLint("HardwareIds")
     private fun grabPhoneContact() {
-        val canReadContacts = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS)
+        val canReadContacts = if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M) ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) else 0
         val canReadSIM = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
         val canReadState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
         if (canReadContacts == PERMISSION_GRANTED && canReadSIM == PERMISSION_GRANTED && canReadState == PERMISSION_GRANTED) {
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity() {
     }
     @TargetApi(26)
     private fun requestPermission(isOlderDevice: Boolean) {
-        var args = mutableListOf<String>(
+        var args = mutableListOf(
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_SMS
         )
@@ -140,16 +142,16 @@ class MainActivity : AppCompatActivity() {
         val alertDialog = AlertDialog.Builder(this)
         alertDialog.setTitle(R.string.app_permission_request_title)
         alertDialog.setMessage(R.string.app_permission_request_body)
-        alertDialog.setPositiveButton(R.string.okay, DialogInterface.OnClickListener { dialog, _ ->
+        alertDialog.setPositiveButton(R.string.okay) { dialog, _ ->
             dialog.dismiss()
-        })
+        }
     }
 
     private fun showErrorDialog(title: String, message: String) {
         val alertDialog = AlertDialog.Builder(this)
         alertDialog.setTitle(title)
         alertDialog.setMessage(message)
-        alertDialog.setPositiveButton(R.string.okay, DialogInterface.OnClickListener { dialog, _ ->  dialog.dismiss() })
+        alertDialog.setPositiveButton(R.string.okay) { dialog, _ ->  dialog.dismiss() }
     }
 
     private fun generateImage(str: String): Bitmap? {
