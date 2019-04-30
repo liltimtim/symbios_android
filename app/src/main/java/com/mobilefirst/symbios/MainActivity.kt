@@ -77,9 +77,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("HardwareIds")
     private fun grabPhoneContact() {
         val canReadContacts = if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M) ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) else 0
-        val canReadSIM = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
         val canReadState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-        if (canReadContacts == PERMISSION_GRANTED && canReadSIM == PERMISSION_GRANTED && canReadState == PERMISSION_GRANTED) {
+        if (canReadContacts == PERMISSION_GRANTED && canReadState == PERMISSION_GRANTED) {
             val service = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             if(service.line1Number != null) {
                 number = service.line1Number
@@ -93,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_NUMBERS) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_SMS) ||
                 ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)
             ) {
                 showPermissionRequestRationale()
@@ -113,8 +111,7 @@ class MainActivity : AppCompatActivity() {
     @TargetApi(26)
     private fun requestPermission(isOlderDevice: Boolean) {
         var args = mutableListOf(
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.READ_SMS
+            Manifest.permission.READ_PHONE_STATE
         )
         if (!isOlderDevice) args.add(Manifest.permission.READ_PHONE_NUMBERS)
 
