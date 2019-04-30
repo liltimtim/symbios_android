@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">symbIOs</string>
+
+    <!-- Dialog app permissions -->
+    <string name="app_permission_request_title">Permission Required</string>
+    <string name="app_permission_request_body">We need your permission to access this device\'s cellular number.</string>
+
+    <!-- Dialog Button titles -->
+    <string name="okay">Okay</string>
+
+    <!-- Dialog no Cellular available -->
+    <string name="no_cellular_number_available">This device does not seem to have a valid number to retrieve.</string>
+    <string name="no_cellular_number_title">No Mobile Number Available</string>
+
+    <!-- MainActivity -->
+    <string name="instructional_text_view">Face both devices towards each other</string>
+    <string name="full_name_hint">Enter your name</string>
+</resources>
