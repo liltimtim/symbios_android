@@ -18,13 +18,15 @@ import android.telephony.TelephonyManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlin.properties.Delegates
-
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.actor
 
 class MainActivity : AppCompatActivity() {
 
@@ -77,8 +79,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("HardwareIds")
     private fun grabPhoneContact() {
         val canReadContacts = if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M) ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) else 0
-        val canReadState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-        if (canReadContacts == PERMISSION_GRANTED && canReadState == PERMISSION_GRANTED) {
+
+        if (canReadContacts == PERMISSION_GRANTED) {
             val service = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             if(service.line1Number != null) {
                 number = service.line1Number
@@ -91,9 +93,7 @@ class MainActivity : AppCompatActivity() {
                 requestPermission(true)
                 return
             }
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_NUMBERS) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)
-            ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_NUMBERS)) {
                 showPermissionRequestRationale()
             } else {
                 requestPermission(false)
@@ -110,9 +110,7 @@ class MainActivity : AppCompatActivity() {
     }
     @TargetApi(26)
     private fun requestPermission(isOlderDevice: Boolean) {
-        var args = mutableListOf(
-            Manifest.permission.READ_PHONE_STATE
-        )
+        var args = mutableListOf<String>()
         if (!isOlderDevice) args.add(Manifest.permission.READ_PHONE_NUMBERS)
 
         ActivityCompat.requestPermissions(
@@ -121,8 +119,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(number: String, name: String) {
-        qrImageView.setImageBitmap(generateImage(vcardFormat(number, name)))
-        qrImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        GlobalScope.launch(Dispatchers.IO) {
+            val image = async { generateImage(vcardFormat(number, name)) }.await()
+            withContext(Dispatchers.Main) {
+                qrImageView.setImageBitmap(image)
+                qrImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+        }
     }
 
     private fun vcardFormat(number: String, name: String): String {
@@ -151,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         alertDialog.setPositiveButton(R.string.okay) { dialog, _ ->  dialog.dismiss() }
     }
 
-    private fun generateImage(str: String): Bitmap? {
+    private suspend fun generateImage(str: String): Bitmap? {
         val scale = 800
         val writer = QRCodeWriter()
         val matrix = writer.encode(str, BarcodeFormat.QR_CODE, scale, scale)
